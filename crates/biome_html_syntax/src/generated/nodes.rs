@@ -1812,11 +1812,18 @@ impl AnySvelteBlock {
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyVueDirective {
+    VueBogusDirective(VueBogusDirective),
     VueDirective(VueDirective),
     VueVBindShorthandDirective(VueVBindShorthandDirective),
     VueVOnShorthandDirective(VueVOnShorthandDirective),
 }
 impl AnyVueDirective {
+    pub fn as_vue_bogus_directive(&self) -> Option<&VueBogusDirective> {
+        match &self {
+            Self::VueBogusDirective(item) => Some(item),
+            _ => None,
+        }
+    }
     pub fn as_vue_directive(&self) -> Option<&VueDirective> {
         match &self {
             Self::VueDirective(item) => Some(item),
@@ -1838,10 +1845,17 @@ impl AnyVueDirective {
 }
 #[derive(Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum AnyVueDirectiveArgument {
+    VueBogusDirectiveArgument(VueBogusDirectiveArgument),
     VueDynamicArgument(VueDynamicArgument),
     VueStaticArgument(VueStaticArgument),
 }
 impl AnyVueDirectiveArgument {
+    pub fn as_vue_bogus_directive_argument(&self) -> Option<&VueBogusDirectiveArgument> {
+        match &self {
+            Self::VueBogusDirectiveArgument(item) => Some(item),
+            _ => None,
+        }
+    }
     pub fn as_vue_dynamic_argument(&self) -> Option<&VueDynamicArgument> {
         match &self {
             Self::VueDynamicArgument(item) => Some(item),
@@ -4384,6 +4398,11 @@ impl From<AnySvelteBlock> for SyntaxElement {
         node.into()
     }
 }
+impl From<VueBogusDirective> for AnyVueDirective {
+    fn from(node: VueBogusDirective) -> Self {
+        Self::VueBogusDirective(node)
+    }
+}
 impl From<VueDirective> for AnyVueDirective {
     fn from(node: VueDirective) -> Self {
         Self::VueDirective(node)
@@ -4401,17 +4420,22 @@ impl From<VueVOnShorthandDirective> for AnyVueDirective {
 }
 impl AstNode for AnyVueDirective {
     type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> = VueDirective::KIND_SET
+    const KIND_SET: SyntaxKindSet<Language> = VueBogusDirective::KIND_SET
+        .union(VueDirective::KIND_SET)
         .union(VueVBindShorthandDirective::KIND_SET)
         .union(VueVOnShorthandDirective::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
         matches!(
             kind,
-            VUE_DIRECTIVE | VUE_V_BIND_SHORTHAND_DIRECTIVE | VUE_V_ON_SHORTHAND_DIRECTIVE
+            VUE_BOGUS_DIRECTIVE
+                | VUE_DIRECTIVE
+                | VUE_V_BIND_SHORTHAND_DIRECTIVE
+                | VUE_V_ON_SHORTHAND_DIRECTIVE
         )
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
+            VUE_BOGUS_DIRECTIVE => Self::VueBogusDirective(VueBogusDirective { syntax }),
             VUE_DIRECTIVE => Self::VueDirective(VueDirective { syntax }),
             VUE_V_BIND_SHORTHAND_DIRECTIVE => {
                 Self::VueVBindShorthandDirective(VueVBindShorthandDirective { syntax })
@@ -4425,6 +4449,7 @@ impl AstNode for AnyVueDirective {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
+            Self::VueBogusDirective(it) => &it.syntax,
             Self::VueDirective(it) => &it.syntax,
             Self::VueVBindShorthandDirective(it) => &it.syntax,
             Self::VueVOnShorthandDirective(it) => &it.syntax,
@@ -4432,6 +4457,7 @@ impl AstNode for AnyVueDirective {
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
+            Self::VueBogusDirective(it) => it.syntax,
             Self::VueDirective(it) => it.syntax,
             Self::VueVBindShorthandDirective(it) => it.syntax,
             Self::VueVOnShorthandDirective(it) => it.syntax,
@@ -4441,6 +4467,7 @@ impl AstNode for AnyVueDirective {
 impl std::fmt::Debug for AnyVueDirective {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::VueBogusDirective(it) => std::fmt::Debug::fmt(it, f),
             Self::VueDirective(it) => std::fmt::Debug::fmt(it, f),
             Self::VueVBindShorthandDirective(it) => std::fmt::Debug::fmt(it, f),
             Self::VueVOnShorthandDirective(it) => std::fmt::Debug::fmt(it, f),
@@ -4450,6 +4477,7 @@ impl std::fmt::Debug for AnyVueDirective {
 impl From<AnyVueDirective> for SyntaxNode {
     fn from(n: AnyVueDirective) -> Self {
         match n {
+            AnyVueDirective::VueBogusDirective(it) => it.into(),
             AnyVueDirective::VueDirective(it) => it.into(),
             AnyVueDirective::VueVBindShorthandDirective(it) => it.into(),
             AnyVueDirective::VueVOnShorthandDirective(it) => it.into(),
@@ -4460,6 +4488,11 @@ impl From<AnyVueDirective> for SyntaxElement {
     fn from(n: AnyVueDirective) -> Self {
         let node: SyntaxNode = n.into();
         node.into()
+    }
+}
+impl From<VueBogusDirectiveArgument> for AnyVueDirectiveArgument {
+    fn from(node: VueBogusDirectiveArgument) -> Self {
+        Self::VueBogusDirectiveArgument(node)
     }
 }
 impl From<VueDynamicArgument> for AnyVueDirectiveArgument {
@@ -4474,13 +4507,20 @@ impl From<VueStaticArgument> for AnyVueDirectiveArgument {
 }
 impl AstNode for AnyVueDirectiveArgument {
     type Language = Language;
-    const KIND_SET: SyntaxKindSet<Language> =
-        VueDynamicArgument::KIND_SET.union(VueStaticArgument::KIND_SET);
+    const KIND_SET: SyntaxKindSet<Language> = VueBogusDirectiveArgument::KIND_SET
+        .union(VueDynamicArgument::KIND_SET)
+        .union(VueStaticArgument::KIND_SET);
     fn can_cast(kind: SyntaxKind) -> bool {
-        matches!(kind, VUE_DYNAMIC_ARGUMENT | VUE_STATIC_ARGUMENT)
+        matches!(
+            kind,
+            VUE_BOGUS_DIRECTIVE_ARGUMENT | VUE_DYNAMIC_ARGUMENT | VUE_STATIC_ARGUMENT
+        )
     }
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
+            VUE_BOGUS_DIRECTIVE_ARGUMENT => {
+                Self::VueBogusDirectiveArgument(VueBogusDirectiveArgument { syntax })
+            }
             VUE_DYNAMIC_ARGUMENT => Self::VueDynamicArgument(VueDynamicArgument { syntax }),
             VUE_STATIC_ARGUMENT => Self::VueStaticArgument(VueStaticArgument { syntax }),
             _ => return None,
@@ -4489,12 +4529,14 @@ impl AstNode for AnyVueDirectiveArgument {
     }
     fn syntax(&self) -> &SyntaxNode {
         match self {
+            Self::VueBogusDirectiveArgument(it) => &it.syntax,
             Self::VueDynamicArgument(it) => &it.syntax,
             Self::VueStaticArgument(it) => &it.syntax,
         }
     }
     fn into_syntax(self) -> SyntaxNode {
         match self {
+            Self::VueBogusDirectiveArgument(it) => it.syntax,
             Self::VueDynamicArgument(it) => it.syntax,
             Self::VueStaticArgument(it) => it.syntax,
         }
@@ -4503,6 +4545,7 @@ impl AstNode for AnyVueDirectiveArgument {
 impl std::fmt::Debug for AnyVueDirectiveArgument {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::VueBogusDirectiveArgument(it) => std::fmt::Debug::fmt(it, f),
             Self::VueDynamicArgument(it) => std::fmt::Debug::fmt(it, f),
             Self::VueStaticArgument(it) => std::fmt::Debug::fmt(it, f),
         }
@@ -4511,6 +4554,7 @@ impl std::fmt::Debug for AnyVueDirectiveArgument {
 impl From<AnyVueDirectiveArgument> for SyntaxNode {
     fn from(n: AnyVueDirectiveArgument) -> Self {
         match n {
+            AnyVueDirectiveArgument::VueBogusDirectiveArgument(it) => it.into(),
             AnyVueDirectiveArgument::VueDynamicArgument(it) => it.into(),
             AnyVueDirectiveArgument::VueStaticArgument(it) => it.into(),
         }
@@ -5078,7 +5122,119 @@ impl From<SvelteBogusBlock> for SyntaxElement {
         n.syntax.into()
     }
 }
-biome_rowan::declare_node_union! { pub AnyHtmlBogusNode = AstroBogusFrontmatter | HtmlBogus | HtmlBogusAttribute | HtmlBogusElement | HtmlBogusTextExpression | SvelteBogusBlock }
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub struct VueBogusDirective {
+    syntax: SyntaxNode,
+}
+impl VueBogusDirective {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn items(&self) -> SyntaxElementChildren {
+        support::elements(&self.syntax)
+    }
+}
+impl AstNode for VueBogusDirective {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(VUE_BOGUS_DIRECTIVE as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == VUE_BOGUS_DIRECTIVE
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for VueBogusDirective {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("VueBogusDirective")
+            .field("items", &DebugSyntaxElementChildren(self.items()))
+            .finish()
+    }
+}
+impl From<VueBogusDirective> for SyntaxNode {
+    fn from(n: VueBogusDirective) -> Self {
+        n.syntax
+    }
+}
+impl From<VueBogusDirective> for SyntaxElement {
+    fn from(n: VueBogusDirective) -> Self {
+        n.syntax.into()
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Serialize)]
+pub struct VueBogusDirectiveArgument {
+    syntax: SyntaxNode,
+}
+impl VueBogusDirectiveArgument {
+    #[doc = r" Create an AstNode from a SyntaxNode without checking its kind"]
+    #[doc = r""]
+    #[doc = r" # Safety"]
+    #[doc = r" This function must be guarded with a call to [AstNode::can_cast]"]
+    #[doc = r" or a match on [SyntaxNode::kind]"]
+    #[inline]
+    pub const unsafe fn new_unchecked(syntax: SyntaxNode) -> Self {
+        Self { syntax }
+    }
+    pub fn items(&self) -> SyntaxElementChildren {
+        support::elements(&self.syntax)
+    }
+}
+impl AstNode for VueBogusDirectiveArgument {
+    type Language = Language;
+    const KIND_SET: SyntaxKindSet<Language> =
+        SyntaxKindSet::from_raw(RawSyntaxKind(VUE_BOGUS_DIRECTIVE_ARGUMENT as u16));
+    fn can_cast(kind: SyntaxKind) -> bool {
+        kind == VUE_BOGUS_DIRECTIVE_ARGUMENT
+    }
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    fn syntax(&self) -> &SyntaxNode {
+        &self.syntax
+    }
+    fn into_syntax(self) -> SyntaxNode {
+        self.syntax
+    }
+}
+impl std::fmt::Debug for VueBogusDirectiveArgument {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("VueBogusDirectiveArgument")
+            .field("items", &DebugSyntaxElementChildren(self.items()))
+            .finish()
+    }
+}
+impl From<VueBogusDirectiveArgument> for SyntaxNode {
+    fn from(n: VueBogusDirectiveArgument) -> Self {
+        n.syntax
+    }
+}
+impl From<VueBogusDirectiveArgument> for SyntaxElement {
+    fn from(n: VueBogusDirectiveArgument) -> Self {
+        n.syntax.into()
+    }
+}
+biome_rowan::declare_node_union! { pub AnyHtmlBogusNode = AstroBogusFrontmatter | HtmlBogus | HtmlBogusAttribute | HtmlBogusElement | HtmlBogusTextExpression | SvelteBogusBlock | VueBogusDirective | VueBogusDirectiveArgument }
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct HtmlAttributeList {
     syntax_list: SyntaxList,

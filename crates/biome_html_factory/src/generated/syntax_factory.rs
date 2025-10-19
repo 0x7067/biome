@@ -19,7 +19,11 @@ impl SyntaxFactory for HtmlSyntaxFactory {
             | HTML_BOGUS_ATTRIBUTE
             | HTML_BOGUS_ELEMENT
             | HTML_BOGUS_TEXT_EXPRESSION
-            | SVELTE_BOGUS_BLOCK => RawSyntaxNode::new(kind, children.into_iter().map(Some)),
+            | SVELTE_BOGUS_BLOCK
+            | VUE_BOGUS_DIRECTIVE
+            | VUE_BOGUS_DIRECTIVE_ARGUMENT => {
+                RawSyntaxNode::new(kind, children.into_iter().map(Some))
+            }
             ASTRO_EMBEDDED_CONTENT => {
                 let mut elements = (&children).into_iter();
                 let mut slots: RawNodeSlots<1usize> = RawNodeSlots::default();

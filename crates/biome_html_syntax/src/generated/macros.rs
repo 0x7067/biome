@@ -182,6 +182,15 @@ macro_rules! map_syntax_node {
                     let $pattern = unsafe { $crate::SvelteBogusBlock::new_unchecked(node) };
                     $body
                 }
+                $crate::HtmlSyntaxKind::VUE_BOGUS_DIRECTIVE => {
+                    let $pattern = unsafe { $crate::VueBogusDirective::new_unchecked(node) };
+                    $body
+                }
+                $crate::HtmlSyntaxKind::VUE_BOGUS_DIRECTIVE_ARGUMENT => {
+                    let $pattern =
+                        unsafe { $crate::VueBogusDirectiveArgument::new_unchecked(node) };
+                    $body
+                }
                 $crate::HtmlSyntaxKind::HTML_ATTRIBUTE_LIST => {
                     let $pattern = unsafe { $crate::HtmlAttributeList::new_unchecked(node) };
                     $body

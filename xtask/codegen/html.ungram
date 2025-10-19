@@ -42,6 +42,8 @@ HtmlBogusAttribute = SyntaxElement*
 AstroBogusFrontmatter = SyntaxElement*
 HtmlBogusTextExpression = SyntaxElement*
 SvelteBogusBlock = SyntaxElement*
+VueBogusDirective = SyntaxElement*
+VueBogusDirectiveArgument = SyntaxElement*
 
 HtmlRoot =
 	bom: 'UNICODE_BOM'?
@@ -281,6 +283,7 @@ AnyVueDirective =
 	VueDirective
 	| VueVBindShorthandDirective
 	| VueVOnShorthandDirective
+	| VueBogusDirective
 
 // <div v-bind:href="url" />
 //      ^^^^^^^^^^^^^^^^^
@@ -314,6 +317,7 @@ VueVOnShorthandDirective =
 AnyVueDirectiveArgument =
 	VueStaticArgument
 	| VueDynamicArgument
+	| VueBogusDirectiveArgument
 
 // <div v-bind:href="url" />
 //             ^^^^

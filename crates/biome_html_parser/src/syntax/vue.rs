@@ -14,7 +14,7 @@ use biome_parser::prelude::*;
 pub fn parse_vue_directive(p: &mut HtmlParser) -> ParsedSyntax {
     let m = p.start();
 
-    p.bump_with_context(HTML_LITERAL, HtmlLexContext::InsideTag);
+    p.bump_with_context(HTML_LITERAL, HtmlLexContext::InsideTagVue);
     if p.at(T![:]) {
         parse_vue_directive_argument(p).ok();
     }
@@ -49,7 +49,7 @@ pub fn parse_vue_v_on_shorthand_directive(p: &mut HtmlParser) -> ParsedSyntax {
 
     let m = p.start();
 
-    p.bump_with_context(T![@], HtmlLexContext::InsideTag);
+    p.bump_with_context(T![@], HtmlLexContext::InsideTagVue);
     parse_vue_dynamic_argument(p)
         .or_else(|| parse_vue_static_argument(p))
         .ok();
@@ -68,7 +68,7 @@ fn parse_vue_directive_argument(p: &mut HtmlParser) -> ParsedSyntax {
 
     let m = p.start();
 
-    p.bump_with_context(T![:], HtmlLexContext::InsideTag);
+    p.bump_with_context(T![:], HtmlLexContext::InsideTagVue);
     parse_vue_dynamic_argument(p)
         .or_else(|| parse_vue_static_argument(p))
         .ok();
@@ -79,7 +79,7 @@ fn parse_vue_directive_argument(p: &mut HtmlParser) -> ParsedSyntax {
 fn parse_vue_static_argument(p: &mut HtmlParser) -> ParsedSyntax {
     let m = p.start();
 
-    p.expect_with_context(HTML_LITERAL, HtmlLexContext::InsideTag);
+    p.expect_with_context(HTML_LITERAL, HtmlLexContext::InsideTagVue);
 
     Present(m.complete(p, VUE_STATIC_ARGUMENT))
 }
@@ -91,9 +91,9 @@ fn parse_vue_dynamic_argument(p: &mut HtmlParser) -> ParsedSyntax {
 
     let m = p.start();
 
-    p.expect_with_context(T!['['], HtmlLexContext::InsideTag);
-    p.expect_with_context(HTML_LITERAL, HtmlLexContext::InsideTag);
-    p.expect_with_context(T![']'], HtmlLexContext::InsideTag);
+    p.expect_with_context(T!['['], HtmlLexContext::InsideTagVue);
+    p.expect_with_context(HTML_LITERAL, HtmlLexContext::InsideTagVue);
+    p.expect_with_context(T![']'], HtmlLexContext::InsideTagVue);
 
     Present(m.complete(p, VUE_DYNAMIC_ARGUMENT))
 }
@@ -133,8 +133,8 @@ fn parse_vue_modifier(p: &mut HtmlParser) -> ParsedSyntax {
 
     let m = p.start();
 
-    p.bump_with_context(T![.], HtmlLexContext::InsideTag);
-    p.bump_with_context(HTML_LITERAL, HtmlLexContext::InsideTag);
+    p.bump_with_context(T![.], HtmlLexContext::InsideTagVue);
+    p.expect_with_context(HTML_LITERAL, HtmlLexContext::InsideTagVue);
 
     Present(m.complete(p, VUE_MODIFIER))
 }

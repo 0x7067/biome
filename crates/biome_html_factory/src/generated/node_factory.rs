@@ -737,3 +737,23 @@ where
         slots,
     ))
 }
+pub fn vue_bogus_directive<I>(slots: I) -> VueBogusDirective
+where
+    I: IntoIterator<Item = Option<SyntaxElement>>,
+    I::IntoIter: ExactSizeIterator,
+{
+    VueBogusDirective::unwrap_cast(SyntaxNode::new_detached(
+        HtmlSyntaxKind::VUE_BOGUS_DIRECTIVE,
+        slots,
+    ))
+}
+pub fn vue_bogus_directive_argument<I>(slots: I) -> VueBogusDirectiveArgument
+where
+    I: IntoIterator<Item = Option<SyntaxElement>>,
+    I::IntoIter: ExactSizeIterator,
+{
+    VueBogusDirectiveArgument::unwrap_cast(SyntaxNode::new_detached(
+        HtmlSyntaxKind::VUE_BOGUS_DIRECTIVE_ARGUMENT,
+        slots,
+    ))
+}
