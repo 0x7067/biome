@@ -8,6 +8,7 @@ impl FormatRule<AnyVueDirectiveArgument> for FormatAnyVueDirectiveArgument {
     type Context = HtmlFormatContext;
     fn fmt(&self, node: &AnyVueDirectiveArgument, f: &mut HtmlFormatter) -> FormatResult<()> {
         match node {
+            AnyVueDirectiveArgument::VueBogusDirectiveArgument(node) => node.format().fmt(f),
             AnyVueDirectiveArgument::VueDynamicArgument(node) => node.format().fmt(f),
             AnyVueDirectiveArgument::VueStaticArgument(node) => node.format().fmt(f),
         }

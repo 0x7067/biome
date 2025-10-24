@@ -1624,6 +1624,82 @@ impl IntoFormat<HtmlFormatContext> for biome_html_syntax::SvelteBogusBlock {
         )
     }
 }
+impl FormatRule<biome_html_syntax::VueBogusDirective>
+    for crate::vue::bogus::bogus_directive::FormatVueBogusDirective
+{
+    type Context = HtmlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &biome_html_syntax::VueBogusDirective,
+        f: &mut HtmlFormatter,
+    ) -> FormatResult<()> {
+        FormatBogusNodeRule::<biome_html_syntax::VueBogusDirective>::fmt(self, node, f)
+    }
+}
+impl AsFormat<HtmlFormatContext> for biome_html_syntax::VueBogusDirective {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        biome_html_syntax::VueBogusDirective,
+        crate::vue::bogus::bogus_directive::FormatVueBogusDirective,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::vue::bogus::bogus_directive::FormatVueBogusDirective::default(),
+        )
+    }
+}
+impl IntoFormat<HtmlFormatContext> for biome_html_syntax::VueBogusDirective {
+    type Format = FormatOwnedWithRule<
+        biome_html_syntax::VueBogusDirective,
+        crate::vue::bogus::bogus_directive::FormatVueBogusDirective,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::vue::bogus::bogus_directive::FormatVueBogusDirective::default(),
+        )
+    }
+}
+impl FormatRule<biome_html_syntax::VueBogusDirectiveArgument>
+    for crate::vue::bogus::bogus_directive_argument::FormatVueBogusDirectiveArgument
+{
+    type Context = HtmlFormatContext;
+    #[inline(always)]
+    fn fmt(
+        &self,
+        node: &biome_html_syntax::VueBogusDirectiveArgument,
+        f: &mut HtmlFormatter,
+    ) -> FormatResult<()> {
+        FormatBogusNodeRule::<biome_html_syntax::VueBogusDirectiveArgument>::fmt(self, node, f)
+    }
+}
+impl AsFormat<HtmlFormatContext> for biome_html_syntax::VueBogusDirectiveArgument {
+    type Format<'a> = FormatRefWithRule<
+        'a,
+        biome_html_syntax::VueBogusDirectiveArgument,
+        crate::vue::bogus::bogus_directive_argument::FormatVueBogusDirectiveArgument,
+    >;
+    fn format(&self) -> Self::Format<'_> {
+        FormatRefWithRule::new(
+            self,
+            crate::vue::bogus::bogus_directive_argument::FormatVueBogusDirectiveArgument::default(),
+        )
+    }
+}
+impl IntoFormat<HtmlFormatContext> for biome_html_syntax::VueBogusDirectiveArgument {
+    type Format = FormatOwnedWithRule<
+        biome_html_syntax::VueBogusDirectiveArgument,
+        crate::vue::bogus::bogus_directive_argument::FormatVueBogusDirectiveArgument,
+    >;
+    fn into_format(self) -> Self::Format {
+        FormatOwnedWithRule::new(
+            self,
+            crate::vue::bogus::bogus_directive_argument::FormatVueBogusDirectiveArgument::default(),
+        )
+    }
+}
 impl AsFormat<HtmlFormatContext> for biome_html_syntax::AnyAstroFrontmatterElement {
     type Format<'a> = FormatRefWithRule<
         'a,

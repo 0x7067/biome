@@ -122,13 +122,27 @@ fn parse_doc_type(p: &mut HtmlParser) -> ParsedSyntax {
     Present(m.complete(p, HTML_DIRECTIVE))
 }
 
+/// We need to treat `:`, `.` and `@` differently if we are in a Vue context.
+///
+/// Normally, we would do this using [`HtmlSyntaxFeatures`], and we do this elsewhere.
+/// However, this makes it so that these characters are disallowed and using them
+/// will emit diagnostics. We want to allow them if they have no special meaning.
+#[inline(always)]
+fn inside_tag_context(p: &HtmlParser) -> HtmlLexContext {
+    if p.options().vue {
+        HtmlLexContext::InsideTagVue
+    } else {
+        HtmlLexContext::InsideTag
+    }
+}
+
 fn parse_element(p: &mut HtmlParser) -> ParsedSyntax {
     if !p.at(T![<]) {
         return Absent;
     }
     let m = p.start();
 
-    p.bump_with_context(T![<], HtmlLexContext::InsideTag);
+    p.bump_with_context(T![<], inside_tag_context(p));
     let opening_tag_name = p.cur_text().to_string();
     let should_be_self_closing = VOID_ELEMENTS
         .iter()
@@ -141,13 +155,13 @@ fn parse_element(p: &mut HtmlParser) -> ParsedSyntax {
     AttributeList.parse_list(p);
 
     if p.at(T![/]) {
-        p.bump_with_context(T![/], HtmlLexContext::InsideTag);
+        p.bump_with_context(T![/], inside_tag_context(p));
         p.expect_with_context(T![>], HtmlLexContext::Regular);
         Present(m.complete(p, HTML_SELF_CLOSING_ELEMENT))
     } else {
         if should_be_self_closing {
             if p.at(T![/]) {
-                p.bump_with_context(T![/], HtmlLexContext::InsideTag);
+                p.bump_with_context(T![/], inside_tag_context(p));
             }
             p.expect_with_context(T![>], HtmlLexContext::Regular);
             return Present(m.complete(p, HTML_SELF_CLOSING_ELEMENT));
@@ -408,7 +422,7 @@ fn parse_literal(p: &mut HtmlParser, kind: HtmlSyntaxKind) -> ParsedSyntax {
             p.bump_remap_with_context(
                 HTML_LITERAL,
                 match kind {
-                    HTML_TAG_NAME | HTML_ATTRIBUTE_NAME => HtmlLexContext::InsideTag,
+                    HTML_TAG_NAME | HTML_ATTRIBUTE_NAME => inside_tag_context(p),
                     _ => HtmlLexContext::Regular,
                 },
             )
@@ -417,7 +431,7 @@ fn parse_literal(p: &mut HtmlParser, kind: HtmlSyntaxKind) -> ParsedSyntax {
         p.bump_remap_with_context(
             HTML_LITERAL,
             match kind {
-                HTML_TAG_NAME | HTML_ATTRIBUTE_NAME => HtmlLexContext::InsideTag,
+                HTML_TAG_NAME | HTML_ATTRIBUTE_NAME => inside_tag_context(p),
                 _ => HtmlLexContext::Regular,
             },
         );
@@ -425,7 +439,7 @@ fn parse_literal(p: &mut HtmlParser, kind: HtmlSyntaxKind) -> ParsedSyntax {
         p.bump_with_context(
             HTML_LITERAL,
             match kind {
-                HTML_TAG_NAME | HTML_ATTRIBUTE_NAME => HtmlLexContext::InsideTag,
+                HTML_TAG_NAME | HTML_ATTRIBUTE_NAME => inside_tag_context(p),
                 _ => HtmlLexContext::Regular,
             },
         );
@@ -444,7 +458,7 @@ fn parse_attribute_string_literal(p: &mut HtmlParser) -> ParsedSyntax {
     }
     let m = p.start();
 
-    p.bump_with_context(HTML_STRING_LITERAL, HtmlLexContext::InsideTag);
+    p.bump_with_context(HTML_STRING_LITERAL, inside_tag_context(p));
 
     Present(m.complete(p, HTML_STRING))
 }
@@ -459,7 +473,7 @@ fn parse_attribute_initializer(p: &mut HtmlParser) -> ParsedSyntax {
         HtmlSyntaxFeatures::SingleTextExpressions
             .parse_exclusive_syntax(
                 p,
-                |p| parse_single_text_expression(p, HtmlLexContext::InsideTag),
+                |p| parse_single_text_expression(p, inside_tag_context(p)),
                 |p, m| {
                     p.err_builder("Expressions are only valid inside Astro files.", m.range(p))
                         .with_hint("Remove it or rename the file to have the .astro extension.")
@@ -475,7 +489,7 @@ fn parse_attribute_initializer(p: &mut HtmlParser) -> ParsedSyntax {
         HtmlSyntaxFeatures::DoubleTextExpressions
             .parse_exclusive_syntax(
                 p,
-                |p| parse_double_text_expression(p, HtmlLexContext::InsideTag),
+                |p| parse_double_text_expression(p, inside_tag_context(p)),
                 |p, m| {
                     p.err_builder("Text expressions aren't supported.", m.range(p))
                         .with_hint("Remove it or add the option.")

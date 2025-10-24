@@ -8,6 +8,7 @@ impl FormatRule<AnyVueDirective> for FormatAnyVueDirective {
     type Context = HtmlFormatContext;
     fn fmt(&self, node: &AnyVueDirective, f: &mut HtmlFormatter) -> FormatResult<()> {
         match node {
+            AnyVueDirective::VueBogusDirective(node) => node.format().fmt(f),
             AnyVueDirective::VueDirective(node) => node.format().fmt(f),
             AnyVueDirective::VueVBindShorthandDirective(node) => node.format().fmt(f),
             AnyVueDirective::VueVOnShorthandDirective(node) => node.format().fmt(f),

@@ -90,5 +90,7 @@ pub const HTML_KINDS_SRC: KindsSrc = KindsSrc {
         "HTML_BOGUS_TEXT_EXPRESSION",
         "ASTRO_BOGUS_FRONTMATTER",
         "SVELTE_BOGUS_BLOCK",
+        "VUE_BOGUS_DIRECTIVE",
+        "VUE_BOGUS_DIRECTIVE_ARGUMENT",
     ],
 };
