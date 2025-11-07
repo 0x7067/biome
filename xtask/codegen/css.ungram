@@ -630,26 +630,16 @@ CssAtRule =
 
 AnyCssAtRule =
 	CssCharsetAtRule
-	| CssColorProfileAtRule
-	| CssCounterStyleAtRule
-	| CssContainerAtRule
-	| CssFontFaceAtRule
 	| CssFontFeatureValuesAtRule
-	| CssFontPaletteValuesAtRule
 	| CssKeyframesAtRule
-	| CssMediaAtRule
-	| CssPageAtRule
 	| CssLayerAtRule
-	| CssSupportsAtRule
-	| CssScopeAtRule
+	| CssPageAtRule
 	| CssImportAtRule
 	| CssNamespaceAtRule
-	| CssStartingStyleAtRule
 	| CssDocumentAtRule
-	| CssPropertyAtRule
 	| CssValueAtRule
-	| CssPositionTryAtRule
-	| CssViewTransitionAtRule
+	| CssAtRuleWithDeclarationBlock
+	| CssAtRuleWithConditionalBlock
 	// Tailwind CSS 4.0 at rules
 	| TwThemeAtRule
 	| TwSourceAtRule
@@ -666,6 +656,87 @@ AnyCssAtRule =
 	| CssUnknownValueAtRule
 	| CssBogusAtRule
 
+CssAtRuleDeclarator =
+	'@'
+	declarator: AnyCssAtRuleDeclarator
+
+AnyCssAtRuleDeclarator =
+	AnyCssAtRuleWithDeclarationBlockDeclarator
+	| AnyCssAtRuleWithConditionalBlockDeclarator
+
+// Generic at-rule wrappers and declarators (blockless forms)
+AnyCssAtRuleWithDeclarationBlockDeclarator =
+	CssColorProfileAtRuleDeclarator
+	| CssCounterStyleAtRuleDeclarator
+	| CssPropertyAtRuleDeclarator
+	| CssFontFaceAtRuleDeclarator
+	| CssFontPaletteValuesAtRuleDeclarator
+	| CssPositionTryAtRuleDeclarator
+	| CssViewTransitionAtRuleDeclarator
+
+CssAtRuleWithDeclarationBlock =
+	declarator: AnyCssAtRuleWithDeclarationBlockDeclarator
+	block: AnyCssDeclarationBlock
+
+AnyCssAtRuleWithConditionalBlockDeclarator =
+	CssMediaAtRuleDeclarator
+	| CssContainerAtRuleDeclarator
+	| CssSupportsAtRuleDeclarator
+	| CssScopeAtRuleDeclarator
+	| CssStartingStyleAtRuleDeclarator
+
+CssAtRuleWithConditionalBlock =
+	declarator: AnyCssAtRuleWithConditionalBlockDeclarator
+	block: AnyCssConditionalBlock
+
+// Conditional block declarator nodes
+CssMediaAtRuleDeclarator =
+	'media'
+	queries: CssMediaQueryList
+
+CssContainerAtRuleDeclarator =
+	'container'
+	name: CssCustomIdentifier?
+	query: AnyCssContainerQuery
+
+CssSupportsAtRuleDeclarator =
+	'supports'
+	condition: AnyCssSupportsCondition
+
+CssScopeAtRuleDeclarator =
+	'scope'
+	range: AnyCssScopeRange?
+
+CssStartingStyleAtRuleDeclarator =
+	'starting-style'
+
+// Declaration block declarator nodes
+CssColorProfileAtRuleDeclarator =
+	'color-profile'
+	name: CssCustomIdentifier
+
+CssCounterStyleAtRuleDeclarator =
+	'counter-style'
+	name: CssCustomIdentifier
+
+CssPropertyAtRuleDeclarator =
+	'property'
+	name: CssDashedIdentifier
+
+CssFontFaceAtRuleDeclarator =
+	'font-face'
+
+CssFontPaletteValuesAtRuleDeclarator =
+	'font-palette-values'
+	name: CssDashedIdentifier
+
+CssPositionTryAtRuleDeclarator =
+	'position-try'
+	name: CssDashedIdentifier
+
+CssViewTransitionAtRuleDeclarator =
+	'view-transition'
+
 // @charset "UTF-8";
 // ^^^^^^^^^^^^^^^^^
 CssCharsetAtRule =
@@ -679,24 +750,21 @@ CssCharsetAtRule =
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // TODO: `name` should be `<dashed-ident> | device-cmyk` instead
 CssColorProfileAtRule =
-	'color-profile'
-	name: CssCustomIdentifier
+	declarator: CssColorProfileAtRuleDeclarator
 	block: AnyCssDeclarationBlock
 
 CssCounterStyleAtRule =
-	'counter-style'
-	name: CssCustomIdentifier
+	declarator: CssCounterStyleAtRuleDeclarator
 	block: AnyCssDeclarationBlock
 
 CssPropertyAtRule =
-	'property'
-	name: CssDashedIdentifier
+	declarator: CssPropertyAtRuleDeclarator
 	block: AnyCssDeclarationBlock
 
 // @font-face {}
 // ^^^^^^^^^^^^^
 CssFontFaceAtRule =
-	'font-face'
+	declarator: CssFontFaceAtRuleDeclarator
 	block: AnyCssDeclarationBlock
 
 
@@ -770,8 +838,7 @@ CssFontFeatureValuesItem =
 // @font-palette-values --ident {}
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 CssFontPaletteValuesAtRule =
-	'font-palette-values'
-	name: CssDashedIdentifier
+	declarator: CssFontPaletteValuesAtRuleDeclarator
 	block: AnyCssDeclarationBlock
 
 
@@ -800,9 +867,7 @@ CssFontPaletteValuesAtRule =
 // @container name (width <= 500px) {  }
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 CssContainerAtRule =
-	'container'
-	name: CssCustomIdentifier?
-	query: AnyCssContainerQuery
+	declarator: CssContainerAtRuleDeclarator
 	block: AnyCssConditionalBlock
 
 // <container-query>
@@ -1050,8 +1115,7 @@ CssKeyframesPercentageSelector =
 // @media screen, all, print {}
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 CssMediaAtRule =
-	'media'
-	queries: CssMediaQueryList
+	declarator: CssMediaAtRuleDeclarator
 	block: AnyCssConditionalBlock
 
 // @media screen, (width > 500px), print {}
@@ -1352,8 +1416,7 @@ CssLayerNameList = (CssIdentifier ('.' CssIdentifier)*)
 // @supports (display: grid) {}
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 CssSupportsAtRule =
-	'supports'
-	condition: AnyCssSupportsCondition
+	declarator: CssSupportsAtRuleDeclarator
 	block: AnyCssConditionalBlock
 
 AnyCssSupportsCondition =
@@ -1429,8 +1492,7 @@ CssSupportsFeatureSelector =
 //   }
 
 CssScopeAtRule =
-	'scope'
-	range: AnyCssScopeRange?
+	declarator: CssScopeAtRuleDeclarator
 	block: AnyCssConditionalBlock
 
 AnyCssScopeRange =
@@ -1533,7 +1595,7 @@ AnyCssNamespaceUrl = CssUrlFunction | CssString
 //  }
 // }
 CssStartingStyleAtRule =
-	'starting-style'
+	declarator: CssStartingStyleAtRuleDeclarator
 	block: AnyCssConditionalBlock
 
 // https://www.w3.org/TR/2012/WD-css3-conditional-20120911/#at-document
@@ -1662,8 +1724,7 @@ CssUnknownAtRuleComponentList = SyntaxElement*
 // @position-try --ident { }
 // ^^^^^^^^^^^^^^^^^^^^^^^^^
 CssPositionTryAtRule =
-	'position-try'
-	name: CssDashedIdentifier
+	declarator: CssPositionTryAtRuleDeclarator
 	block: AnyCssDeclarationBlock
 
 // https://drafts.csswg.org/css-view-transitions-2/#view-transition-rule
@@ -1672,7 +1733,7 @@ CssPositionTryAtRule =
 // @view-transition { }
 // ^^^^^^^^^^^^^^^^^^^^
 CssViewTransitionAtRule =
-	'view-transition'
+	declarator: CssViewTransitionAtRuleDeclarator
 	block: AnyCssDeclarationBlock
 
 ///////////////
@@ -1928,9 +1989,13 @@ AnyTwCustomVariantSelector =
 	AnyCssRuleBlock
 	| TwCustomVariantShorthand
 
+AnyTwCustomVariantShorthand =
+	CssSelectorList
+	| CssAtRuleDeclarator
+
 TwCustomVariantShorthand =
   '('
-  selector: CssSelectorList
+  selector: AnyTwCustomVariantShorthand
   ')'
   ';'
 

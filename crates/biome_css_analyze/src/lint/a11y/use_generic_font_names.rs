@@ -7,8 +7,8 @@ use biome_analyze::{
 };
 use biome_console::markup;
 use biome_css_syntax::{
-    AnyCssAtRule, AnyCssGenericComponentValue, AnyCssValue, CssAtRule,
-    CssGenericComponentValueList, CssGenericProperty, CssSyntaxKind,
+    AnyCssAtRuleWithDeclarationBlockDeclarator, AnyCssGenericComponentValue, AnyCssValue,
+    CssAtRule, CssGenericComponentValueList, CssGenericProperty, CssSyntaxKind,
 };
 use biome_diagnostics::Severity;
 use biome_rowan::{AstNode, SyntaxNodeCast, TextRange};
@@ -156,7 +156,14 @@ fn is_in_font_face_at_rule(node: &CssGenericProperty) -> bool {
         .find(|n| n.kind() == CssSyntaxKind::CSS_AT_RULE)
         .and_then(|n| n.cast::<CssAtRule>())
         .and_then(|n| n.rule().ok())
-        .is_some_and(|n| matches!(n, AnyCssAtRule::CssFontFaceAtRule(_)))
+        .and_then(|n| n.as_css_at_rule_with_declaration_block().cloned())
+        .and_then(|n| n.declarator().ok())
+        .is_some_and(|n| {
+            matches!(
+                n,
+                AnyCssAtRuleWithDeclarationBlockDeclarator::CssFontFaceAtRuleDeclarator(_)
+            )
+        })
 }
 
 fn is_shorthand_font_property_with_keyword(properties: &CssGenericComponentValueList) -> bool {
