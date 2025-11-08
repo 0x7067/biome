@@ -1,6 +1,7 @@
 use crate::parser::HtmlParser;
 use crate::syntax::parse_attribute_initializer;
 use crate::syntax::parse_error::expected_attribute;
+use crate::syntax::parse_error::expected_vue_directive_argument;
 use crate::token_source::HtmlLexContext;
 use biome_html_syntax::HtmlSyntaxKind;
 use biome_html_syntax::HtmlSyntaxKind::*;
@@ -33,7 +34,13 @@ pub fn parse_vue_v_bind_shorthand_directive(p: &mut HtmlParser) -> ParsedSyntax 
 
     let m = p.start();
 
-    parse_vue_directive_argument(p).ok();
+    parse_vue_directive_argument(p)
+        .or_recover_with_token_set(
+            p,
+            &ParseRecoveryTokenSet::new(VUE_BOGUS_DIRECTIVE_ARGUMENT, token_set![T![.], T![=]]),
+            expected_vue_directive_argument,
+        )
+        .ok();
     VueModifierList.parse_list(p);
     if p.at(T![=]) {
         parse_attribute_initializer(p).ok();
@@ -120,7 +127,7 @@ impl ParseNodeList for VueModifierList {
     ) -> biome_parser::parse_recovery::RecoveryResult {
         parsed_element.or_recover_with_token_set(
             p,
-            &ParseRecoveryTokenSet::new(HTML_BOGUS_ATTRIBUTE, token_set![T![.], T![>]]),
+            &ParseRecoveryTokenSet::new(VUE_BOGUS_DIRECTIVE, token_set![T![.], T![>]]),
             expected_attribute,
         )
     }

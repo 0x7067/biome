@@ -40,6 +40,7 @@ enum IdentifierContext {
     None,
     Doctype,
     Svelte,
+    Vue,
 }
 
 impl IdentifierContext {
@@ -98,7 +99,10 @@ impl<'src> HtmlLexer<'src> {
                 self.consume_tag_name(current)
             }
             _ if self.current_kind != T![<] && is_attribute_name_byte(current) => {
-                self.consume_identifier(current, false)
+                self.consume_identifier(current, IdentifierContext::None)
+            }
+            _ if is_at_svelte_start_identifier(current) => {
+                self.consume_identifier(current, IdentifierContext::Svelte)
             }
             _ => {
                 if self.position == 0
@@ -145,16 +149,8 @@ impl<'src> HtmlLexer<'src> {
                 // https://html.spec.whatwg.org/multipage/syntax.html#start-tags
                 self.consume_tag_name(current)
             }
-<<<<<<< HEAD
-            _ if (self.current_kind != T![<] && is_attribute_name_byte(current)) => {
-                self.consume_identifier(current, IdentifierContext::None)
-=======
-            _ if self.current_kind != T![<] && is_attribute_name_byte_vue(current) => {
-                self.consume_identifier_vue(current)
->>>>>>> 5377512634 (WIP 2)
-            }
-            _ if is_at_svelte_start_identifier(current) => {
-                self.consume_identifier(current, IdentifierContext::Svelte)
+            _ if (self.current_kind != T![<] && is_attribute_name_byte_vue(current)) => {
+                self.consume_identifier(current, IdentifierContext::Vue)
             }
             _ => self.consume_unexpected_character(),
         }
@@ -470,6 +466,18 @@ impl<'src> HtmlLexer<'src> {
                         break;
                     }
                 }
+                IdentifierContext::Vue => {
+                    if is_attribute_name_byte_vue(byte) {
+                        if len < BUFFER_SIZE {
+                            buffer[len] = byte;
+                            len += 1;
+                        }
+
+                        self.advance(1)
+                    } else {
+                        break;
+                    }
+                }
             }
         }
 
@@ -499,27 +507,8 @@ impl<'src> HtmlLexer<'src> {
         }
     }
 
-<<<<<<< HEAD
     /// Consumes an HTML tag name token starting with the given byte.
     /// Tag names can contain alphanumeric characters, hyphens, colons and dots.
-=======
-    fn consume_identifier_vue(&mut self, first: u8) -> HtmlSyntaxKind {
-        self.assert_current_char_boundary();
-
-        self.advance_byte_or_char(first);
-
-        while let Some(byte) = self.current_byte() {
-            if is_attribute_name_byte_vue(byte) {
-                self.advance(1)
-            } else {
-                break;
-            }
-        }
-
-        HTML_LITERAL
-    }
-
->>>>>>> 5377512634 (WIP 2)
     fn consume_tag_name(&mut self, first: u8) -> HtmlSyntaxKind {
         self.assert_current_char_boundary();
 
